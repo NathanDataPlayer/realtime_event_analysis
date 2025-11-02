@@ -59,7 +59,7 @@ make run  # 后端监听 http://localhost:8088/，同时服务前端静态页面
 
 ### (3) 整体集群的作业可视化
 
-![集群作业可视化](https://github.com/user-attachments/assets/467fbf0c-852d-4029-904a-fdc04f307ac0)
+<img width="1564" height="885" alt="image" src="https://github.com/user-attachments/assets/f8c94991-ad31-44e3-ba60-7925d4ba74fc" />
 
 ### 实时接入源端数据到SR后，对接Metabase，可以实时分析数据
 
