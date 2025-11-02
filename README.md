@@ -34,8 +34,10 @@
 效果演示：
 (1) 数据可配置化接入:
 <img width="1784" height="889" alt="image" src="https://github.com/user-attachments/assets/f5080994-10b2-485c-a0d7-712284f2d627" />
+
 (2) 支持作业的创建、修改与停止等管理:
 <img width="766" height="585" alt="image" src="https://github.com/user-attachments/assets/f469fdd4-7f35-4d84-857a-068c7af60d05" />
+
 (3) 整体集群的作业可视化:
 <img width="1573" height="800" alt="image" src="https://github.com/user-attachments/assets/467fbf0c-852d-4029-904a-fdc04f307ac0" />
 
