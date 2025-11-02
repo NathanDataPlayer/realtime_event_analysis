@@ -1,0 +1,103 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    container_name: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+      - zookeeper
+
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:latest
+    platform: linux/amd64
+    container_name: starrocks-fe
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "8030:8030"   # FE HTTP
+      - "9030:9030"   # FE MySQL 协议
+    command: ["/bin/bash","-lc","/opt/starrocks/fe/bin/start_fe.sh --daemon && sleep infinity"]
+
+  starrocks-be:
+    image: starrocks/be-ubuntu:latest
+    platform: linux/amd64
+    container_name: starrocks-be
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      - starrocks-fe
+    command: ["/bin/bash","-lc","/opt/starrocks/be/bin/start_be.sh --daemon && sleep infinity"]
+
+  metabase:
+    image: metabase/metabase:v0.49.13
+    container_name: metabase
+    environment:
+      MB_DB_FILE: /metabase.db
+    ports:
+      - "3000:3000"
+    depends_on:
+      - starrocks-fe
+
+  kafka-init:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-init
+    depends_on:
+      - kafka
+    entrypoint: ["/bin/bash","-c"]
+    command: >
+      kafka-topics --bootstrap-server kafka:9092 \
+      --create --if-not-exists --topic page_views --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server kafka:9092 \
+      --create --if-not-exists --topic orders --partitions 3 --replication-factor 1
+
+  producer:
+    build:
+      context: ./producer
+    container_name: producer
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      TOPIC_PAGE_VIEWS: page_views
+      TOPIC_ORDERS: orders
+    command: ["python","app.py"]
+
+  starrocks-init:
+    image: mysql:8
+    container_name: starrocks-init
+    depends_on:
+      - starrocks-fe
+      - starrocks-be
+      - kafka-init
+    volumes:
+      - ./starrocks/init:/init
+    entrypoint: ["/bin/bash","/init/bootstrap.sh"]

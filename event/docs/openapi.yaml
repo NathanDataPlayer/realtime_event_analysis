@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: SR Ingest API
+  version: 0.1.0
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /api/pipelines:
+    get:
+      summary: List pipelines
+      responses:
+        '200':
+          description: OK
+  /api/kafka/topics:
+    get:
+      summary: List Kafka topics
+      responses:
+        '200':
+          description: OK
+  /api/starrocks/jobs:
+    get:
+      summary: List StarRocks routine load jobs
+      responses:
+        '200':
+          description: OK

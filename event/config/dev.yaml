@@ -1,0 +1,12 @@
+server:
+  port: 8088
+  staticDir: "ui"
+  env: "dev"
+kafka:
+  brokers: ["127.0.0.1:9092"]
+starrocks:
+  feHost: "127.0.0.1"
+  fePort: 9030
+  user: "root"
+  password: ""
+  database: "eventdb"

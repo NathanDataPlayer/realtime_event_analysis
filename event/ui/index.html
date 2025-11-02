@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SR Ingest 控制台 · 初稿</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00A3FF"/>
+              <stop offset="100%" stop-color="#006EFF"/>
+            </linearGradient>
+          </defs>
+          <circle cx="16" cy="16" r="12" fill="url(#g)"/>
+          <path d="M10 16l4 4 8-8" stroke="#0B1F3B" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <strong>SR Ingest</strong>
+        <span class="brand-sub">可配置的管道管理器</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <!-- 顶部栏精简：移除环境切换、搜索框与“新建管道”按钮 -->
+    </div>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar">
+     <nav>
+        <a class="nav-item active" href="#" data-page="overview"><span>总览</span></a>
+        <a class="nav-item" href="#" data-page="topics"><span>Kafka 主题</span></a>
+        <a class="nav-item" href="#" data-page="jobs"><span>StarRocks 作业</span></a>
+        <a class="nav-item" href="#" data-page="monitoring"><span>监控与告警</span></a>
+        <a class="nav-item" href="#" data-page="settings"><span>设置</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <span>v0.1</span>
+      </div>
+    </aside>
+    <main class="content">
+      <!-- 总览页面 -->
+      <section class="page active" data-page="overview">
+      <section class="hero">
+        <div>
+          <h1>管道总览</h1>
+          <p class="muted">从数据源到 Kafka，再到 StarRocks 的可管理式接入。</p>
+        </div>
+        <div class="hero-actions">
+          <button class="ghost">全部暂停</button>
+          <button class="ghost">全部恢复</button>
+        </div>
+      </section>
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">运行中的作业</div>
+          <div class="stat-value">3</div>
+          <div class="stat-trend up">+1</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">每分钟吞吐</div>
+          <div class="stat-value">58k</div>
+          <div class="progress">
+            <div class="bar" style="width: 65%"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">错误行（近10分钟）</div>
+          <div class="stat-value warn">234</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">消费延迟</div>
+          <div class="stat-value">0.4s</div>
+        </div>
+      </section>
+      <section class="section-header">
+        <h2>状态分布</h2>
+        <div class="filters">
+          
+        </div>
+      </section>
+      <section class="data-grid" id="distribution-grid">
+        <div class="empty muted">正在加载摘要...</div>
+      </section>
+
+      <section class="section-header">
+        <h2>异常 Top 3</h2>
+        <div class="filters">
+          <span class="muted">近10–30分钟内的非 RUNNING 项</span>
+        </div>
+      </section>
+      <section class="data-grid" id="anomaly-list">
+        <div class="empty muted">暂无异常</div>
+      </section>
+      </section>
+
+      <!-- Kafka 主题页面 -->
+      <section class="page" data-page="topics">
+        <section class="section-header">
+          <h2>Kafka 主题</h2>
+          <div class="filters">
+            <button class="pill active">全部</button>
+            <button class="pill">高分区</button>
+            <button class="pill">活跃</button>
+          </div>
+        </section>
+        <section class="data-grid" id="topics-page-list">
+          <div class="empty muted">正在加载主题...</div>
+        </section>
+      </section>
+
+      <!-- StarRocks 作业页面 -->
+      <section class="page" data-page="jobs">
+        <section class="section-header">
+          <div class="header-left">
+            <h2>StarRocks 作业</h2>
+            <div class="filters" id="jobs-filters">
+              <button class="pill active" data-filter="all">全部</button>
+              <button class="pill" data-filter="RUNNING">运行中</button>
+              <button class="pill" data-filter="PAUSED">暂停</button>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="search">
+              <input type="text" id="jobs-search-input" placeholder="搜索作业或表名...">
+            </div>
+            <button class="primary" id="btn-open-create-job">新建作业</button>
+          </div>
+        </section>
+        <div class="modal hidden" id="modal-create-job">
+          <div class="modal-overlay" data-close="true"></div>
+          <div class="modal-card">
+            <div class="card-header">
+              <div>
+                <h3>创建 Routine Load</h3>
+              </div>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>作业名称</span>
+                <input type="text" id="cj-name" placeholder="orders_rl">
+              </label>
+              <label>
+                <span>目标表</span>
+                <input type="text" id="cj-table" placeholder="orders">
+              </label>
+              <label>
+                <span>Kafka broker</span>
+                <input type="text" id="cj-brokers" placeholder="kafka:9092" value="kafka:9092">
+              </label>
+              <label>
+                <span>Kafka 主题</span>
+                <input type="text" id="cj-topic" placeholder="orders">
+              </label>
+              <label>
+                <span>消费组ID</span>
+                <input type="text" id="cj-group" placeholder="sr-orders">
+              </label>
+              <label class="full">
+                <span>列映射 (逗号分隔)</span>
+                <input type="text" id="cj-columns" placeholder="order_id,user_id,amount,currency,status,ts_ms,region,channel">
+              </label>
+              <label class="full">
+                <span>JSONPaths</span>
+                <textarea id="cj-jsonpaths" rows="3" placeholder='["$.order_id","$.user_id","$.amount","$.currency","$.status","$.ts_ms","$.region","$.channel"]'></textarea>
+              </label>
+              <label class="full">
+                <span>时间映射 SET</span>
+                <input type="text" id="cj-set" placeholder="event_time = FROM_UNIXTIME(ts_ms / 1000)">
+              </label>
+              <div class="half">
+                <label>
+                  <span>并发数</span>
+                  <input type="number" id="cj-concurrency" value="3" min="1">
+                </label>
+              </div>
+              <div class="half">
+                <label>
+                  <span>批间隔(s)</span>
+                  <input type="number" id="cj-interval" value="5" min="1">
+                </label>
+              </div>
+            </div>
+            <div class="card-footer">
+              <button class="ghost" id="btn-cancel-create-job">取消</button>
+              <button class="primary" id="btn-submit-create-job">创建</button>
+            </div>
+          </div>
+        </div>
+        <!-- 作业修改弹窗 -->
+        <div class="modal hidden" id="modal-edit-job">
+          <div class="modal-overlay" data-close="true"></div>
+          <div class="modal-card">
+            <div class="card-header">
+              <div>
+                <h3 id="ej-title">修改 Routine Load 属性</h3>
+                <p class="muted">提示：修改作业会先暂停作业，更新完成后自动恢复（原本运行中）。</p>
+              </div>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>desired_concurrent_number</span>
+                <input type="number" id="ej-desired_concurrent_number" min="1" placeholder="3">
+              </label>
+              <label>
+                <span>max_error_number</span>
+                <input type="number" id="ej-max_error_number" min="0" placeholder="0">
+              </label>
+              <label>
+                <span>max_batch_interval</span>
+                <input type="number" id="ej-max_batch_interval" min="1" placeholder="5">
+              </label>
+              <label>
+                <span>max_batch_rows</span>
+                <input type="number" id="ej-max_batch_rows" min="1" placeholder="200000">
+              </label>
+              <label>
+                <span>max_batch_size</span>
+                <input type="number" id="ej-max_batch_size" min="1" placeholder="209715200">
+              </label>
+              <label class="full">
+                <span>jsonpaths (JSON 数组)</span>
+                <textarea id="ej-jsonpaths" rows="3" placeholder='["$.field1","$.field2"]'></textarea>
+              </label>
+              <label>
+                <span>json_root</span>
+                <input type="text" id="ej-json_root" placeholder="$">
+              </label>
+              <label>
+                <span>strip_outer_array</span>
+                <select id="ej-strip_outer_array">
+                  <option value="">不修改</option>
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </label>
+              <label>
+                <span>strict_mode</span>
+                <select id="ej-strict_mode">
+                  <option value="">不修改</option>
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              </label>
+              <label>
+                <span>timezone</span>
+                <input type="text" id="ej-timezone" placeholder="Asia/Shanghai">
+              </label>
+            </div>
+            <div class="card-footer">
+              <button class="ghost" id="btn-cancel-edit-job">取消</button>
+              <button class="primary" id="btn-submit-edit-job">保存</button>
+            </div>
+          </div>
+        </div>
+        <!-- 作业详情弹窗 -->
+        <div class="modal hidden" id="modal-job-detail">
+          <div class="modal-overlay" data-close="true"></div>
+          <div class="modal-card">
+            <div class="card-header">
+              <div>
+                <h3 id="jd-title">作业详情</h3>
+                <p class="muted" id="jd-sub">Routine Load 配置与 Kafka 参数</p>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <div class="kv" id="jd-basic">
+                <div><span class="key">名称</span><span class="val" id="jd-name">—</span></div>
+                <div><span class="key">状态</span><span class="val" id="jd-state">—</span></div>
+                <div><span class="key">目标表</span><span class="val" id="jd-table">—</span></div>
+              </div>
+              <h4 class="section-title">Properties</h4>
+              <div class="kv" id="jd-props"></div>
+              <h4 class="section-title">Kafka</h4>
+              <div class="kv" id="jd-kafka"></div>
+              <h4 class="section-title">CREATE SQL</h4>
+              <pre class="code" id="jd-sql">—</pre>
+            </div>
+            <div class="card-footer">
+              <button class="ghost" id="btn-close-job-detail">关闭</button>
+            </div>
+          </div>
+        </div>
+        <section class="data-grid" id="jobs-page-list">
+          <div class="empty muted">正在加载作业...</div>
+        </section>
+        <section class="pagination" id="jobs-pagination">
+          <button class="ghost" data-page-action="prev">上一页</button>
+          <span class="muted" id="jobs-page-indicator">第 1 / 1 页</span>
+          <button class="ghost" data-page-action="next">下一页</button>
+        </section>
+      </section>
+
+      <!-- 监控与告警页面 -->
+      <section class="page" data-page="monitoring">
+        <section class="section-header">
+          <h2>监控与告警</h2>
+        </section>
+        <div class="empty muted">监控与告警页面正在建设中...</div>
+      </section>
+
+      <!-- 设置页面 -->
+      <section class="page" data-page="settings">
+        <section class="section-header">
+          <h2>设置</h2>
+        </section>
+        <div class="empty muted">设置页面正在建设中...</div>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+  </body>
+</html>
